@@ -31,8 +31,27 @@ start_scheduler(app)
 
 @app.route('/')
 def index():
-    products = Product.query.all()
-    return render_template('index.html', products=products)
+    # Get query parameters
+    name_filter = request.args.get('name_filter', '').strip()
+    sort_option = request.args.get('sort', 'name')
+    
+    # Start with base query
+    query = Product.query
+    
+    # Apply name filter if provided
+    if name_filter:
+        query = query.filter(Product.name.ilike(f'%{name_filter}%'))
+    
+    # Apply sorting
+    if sort_option == 'price_asc':
+        query = query.order_by(Product.price)
+    elif sort_option == 'price_desc':
+        query = query.order_by(Product.price.desc())
+    else:  # default to name
+        query = query.order_by(Product.name)
+    
+    products = query.all()
+    return render_template('index.html', products=products, name_filter=name_filter, sort_option=sort_option)
 
 
 @app.route('/scrape')

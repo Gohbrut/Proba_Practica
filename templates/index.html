@@ -2,37 +2,108 @@
 <html>
 <head>
     <title>Products</title>
+    <style>
+        .filter-section {
+            background-color: #f5f5f5;
+            padding: 15px;
+            margin-bottom: 20px;
+            border-radius: 5px;
+        }
+        .filter-section input, .filter-section select {
+            padding: 8px;
+            margin-right: 10px;
+            border: 1px solid #ddd;
+            border-radius: 3px;
+        }
+        .filter-section button {
+            padding: 8px 15px;
+            background-color: #4CAF50;
+            color: white;
+            border: none;
+            border-radius: 3px;
+            cursor: pointer;
+        }
+        .filter-section button:hover {
+            background-color: #45a049;
+        }
+    </style>
+    <script>
+        // Debounce function to delay form submission
+        function debounce(func, delay) {
+            let timeoutId;
+            return function() {
+                clearTimeout(timeoutId);
+                timeoutId = setTimeout(func, delay);
+            };
+        }
+
+        // Auto-submit form when filter or sort changes
+        document.addEventListener('DOMContentLoaded', function() {
+            const filterForm = document.getElementById('filterForm');
+            const nameFilter = document.getElementById('nameFilter');
+            const sortSelect = document.getElementById('sortSelect');
+            
+            const submitForm = debounce(function() {
+                filterForm.submit();
+            }, 500); // 500ms delay
+            
+            nameFilter.addEventListener('input', submitForm);
+            
+            sortSelect.addEventListener('change', function() {
+                filterForm.submit();
+            });
+        });
+    </script>
 </head>
 <body>
 
-<h1>Lista Produse</h1>
+
 
 <a href="/scrape">Run Scraper</a>
-
 <a href="/upload-pdf">Upload PDF Invoice</a>
+
+<h1>Lista Produse</h1>
 
 <hr>
 
-{% for product in products %}
-<div style="border:1px solid gray; padding:10px; margin:10px;">
-
-    <img src="{{ product.image_url }}" width="150">
-
-    <h2>{{ product.name }}</h2>
-
-    <p><strong>Price (USD):</strong> {{ product.price }}</p>
-
-    <p><strong>Price (RON):</strong> {{ product.price_ron }}</p>
-
-    <p>{{ product.description }}</p>
-
-    <a href="/edit/{{ product.id }}">Edit</a>
-
-    <a href="/delete/{{ product.id }}">Delete</a>
-
-
+<div class="filter-section">
+    <form id="filterForm" method="GET" action="/">
+        <input id="nameFilter" type="text" name="name_filter" placeholder="Filter by product name" value="{{ name_filter }}">
+        
+        <select id="sortSelect" name="sort">
+            <option value="name" {% if sort_option == 'name' %}selected{% endif %}>Sort by Name</option>
+            <option value="price_asc" {% if sort_option == 'price_asc' %}selected{% endif %}>Sort by Price (Low to High)</option>
+            <option value="price_desc" {% if sort_option == 'price_desc' %}selected{% endif %}>Sort by Price (High to Low)</option>
+        </select>
+        
+        <a href="/"><button type="button">Reset</button></a>
+    </form>
 </div>
-{% endfor %}
+
+{% if products|length == 0 %}
+    <p>No products found.</p>
+{% else %}
+    {% for product in products %}
+    <div style="border:1px solid gray; padding:10px; margin:10px;">
+
+        <img src="{{ product.image_url }}" width="150">
+
+        <h2>{{ product.name }}</h2>
+
+        <p><strong>Price (USD):</strong> {{ product.price }}</p>
+
+        <p><strong>Price (RON):</strong> {{ product.price_ron }}</p>
+
+        <p>{{ product.description }}</p>
+
+        <a href="/edit/{{ product.id }}">Edit</a>
+
+        <a href="/delete/{{ product.id }}">Delete</a>
+
+
+    </div>
+    {% endfor %}
+{% endif %}
 
 </body>
 </html>
