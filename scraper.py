@@ -1,4 +1,6 @@
 import time
+import re
+import requests
 
 from selenium import webdriver
 from selenium.webdriver.common.by import By
@@ -19,6 +21,25 @@ PRODUCTS_URL = "https://www.web-scraping.dev/products?category=consumables"
 # The credentials for logging in to the website
 USERNAME = "user123"
 PASSWORD = "password"
+
+
+def get_usd_to_ron_rate():
+    """Fetches the current USD to RON conversion rate from an API."""
+    try:
+        response = requests.get('https://api.exchangerate-api.com/v4/latest/USD')
+        data = response.json()
+        return data['rates']['RON']
+    except Exception as e:
+        print(f"Error fetching conversion rate: {e}")
+        return 4.50  # Default fallback rate
+
+
+def extract_price_value(price_string):
+    """Extracts numeric value from price string (e.g., '$19.99' -> 19.99)"""
+    match = re.search(r'[\d.]+', price_string)
+    if match:
+        return float(match.group())
+    return 0.0
 
 
 def create_driver():
@@ -77,6 +98,10 @@ def scrape_products(app):
 
         print(f"Found {len(products)} products")
 
+        # Get the current conversion rate
+        conversion_rate = get_usd_to_ron_rate()
+        print(f"USD to RON conversion rate: {conversion_rate}")
+
         with app.app_context():
 
             for product in products:
@@ -93,7 +118,7 @@ def scrape_products(app):
                         ".short-description"
                     ).text
 
-                    price = product.find_element(
+                    price_usd = product.find_element(
                         By.CSS_SELECTOR,
                         ".price"
                     ).text
@@ -103,13 +128,20 @@ def scrape_products(app):
                         "img"
                     ).get_attribute("src")
 
+                    # Calculate RON price
+                    price_value = extract_price_value(price_usd)
+                    price_ron_value = price_value * conversion_rate
+                    price_ron = f"{price_ron_value:.2f} RON"
+
                     existing_product = Product.query.filter_by(
                         name=name
                     ).first()
 
                     if existing_product:
 
-                        existing_product.price = price
+                        existing_product.price = price_usd
+                        existing_product.price_ron = price_ron
+                        existing_product.conversion_rate = conversion_rate
                         existing_product.description = description
                         existing_product.image_url = image_url
 
@@ -117,7 +149,9 @@ def scrape_products(app):
 
                         new_product = Product(
                             name=name,
-                            price=price,
+                            price=price_usd,
+                            price_ron=price_ron,
+                            conversion_rate=conversion_rate,
                             description=description,
                             image_url=image_url
                         )
@@ -126,7 +160,7 @@ def scrape_products(app):
 
                     db.session.commit()
 
-                    print(f"Saved: {name}")
+                    print(f"Saved: {name} - USD: {price_usd}, RON: {price_ron}")
 
                 except Exception as e:
                     print("Error product:", e)

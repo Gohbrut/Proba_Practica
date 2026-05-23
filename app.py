@@ -51,6 +51,10 @@ def edit_product(product_id):
         product.description = request.form['description']
         product.image_url = request.form['image_url']
 
+        # New ffields for bonus task
+        product.price_ron = request.form['price_ron']
+        product.conversion_rate = float(request.form['conversion_rate'])
+
         db.session.commit()
 
         return redirect(url_for('index'))

@@ -9,6 +9,8 @@ class Product(db.Model):
 
     name = db.Column(db.String(255), unique=True, nullable=False)
     price = db.Column(db.String(100))
+    price_ron = db.Column(db.String(100))
+    conversion_rate = db.Column(db.Float)
     description = db.Column(db.Text)
     image_url = db.Column(db.Text)
 
