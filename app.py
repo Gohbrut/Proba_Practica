@@ -1,3 +1,8 @@
+import os
+import re
+import pandas as pd
+import pdfplumber
+
 from flask import Flask, render_template, request, redirect, url_for, session, flash
 
 from db_manager import db, Product, User
@@ -5,13 +10,7 @@ from scheduler import start_scheduler
 from scraper import scrape_products
 from sqlalchemy import cast, Float
 
-import os
-import re
-import pandas as pd
-import pdfplumber
-
 from flask import send_file
-from flask import render_template
 
 
 app = Flask(__name__)
@@ -225,21 +224,6 @@ def upload_pdf():
                     parts = line.split()
 
                     print(parts)
-
-                    # [
-                    # '1',
-                    # '172812F',
-                    # 'COMUTATOR',
-                    # 'PORNIRE',
-                    # 'FEBI',
-                    # '251.96',
-                    # 'RON',
-                    # '-1',
-                    # '-1',
-                    # 'H87',
-                    # '19',
-                    # '-251.96'
-                    # ]
 
                     cod_produs = parts[1]
 
