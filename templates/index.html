@@ -1,0 +1,33 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Products</title>
+</head>
+<body>
+
+<h1>Lista Produse</h1>
+
+<a href="/scrape">Run Scraper</a>
+
+<hr>
+
+{% for product in products %}
+<div style="border:1px solid gray; padding:10px; margin:10px;">
+
+    <img src="{{ product.image_url }}" width="150">
+
+    <h2>{{ product.name }}</h2>
+
+    <p><strong>Price:</strong> {{ product.price }}</p>
+
+    <p>{{ product.description }}</p>
+
+    <a href="/edit/{{ product.id }}">Edit</a>
+
+    <a href="/delete/{{ product.id }}">Delete</a>
+
+</div>
+{% endfor %}
+
+</body>
+</html>

@@ -1,0 +1,37 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Edit Product</title>
+</head>
+<body>
+
+<h1>Edit Product</h1>
+
+<form method="POST">
+
+    <label>Name</label>
+    <input type="text" name="name" value="{{ product.name }}">
+
+    <br><br>
+
+    <label>Price</label>
+    <input type="text" name="price" value="{{ product.price }}">
+
+    <br><br>
+
+    <label>Description</label>
+    <textarea name="description">{{ product.description }}</textarea>
+
+    <br><br>
+
+    <label>Image URL</label>
+    <input type="text" name="image_url" value="{{ product.image_url }}">
+
+    <br><br>
+
+    <button type="submit">Save</button>
+
+</form>
+
+</body>
+</html>
