@@ -9,6 +9,8 @@
 
 <a href="/scrape">Run Scraper</a>
 
+<a href="/upload-pdf">Upload PDF Invoice</a>
+
 <hr>
 
 {% for product in products %}
@@ -25,6 +27,7 @@
     <a href="/edit/{{ product.id }}">Edit</a>
 
     <a href="/delete/{{ product.id }}">Delete</a>
+
 
 </div>
 {% endfor %}

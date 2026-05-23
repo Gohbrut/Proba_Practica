@@ -4,6 +4,14 @@ from db_manager import db, Product
 from scheduler import start_scheduler
 from scraper import scrape_products
 
+import os
+import re
+import pandas as pd
+import pdfplumber
+
+from flask import send_file
+from flask import render_template
+
 
 app = Flask(__name__)
 
@@ -59,6 +67,110 @@ def delete_product(product_id):
 
     return redirect(url_for('index'))
 
+@app.route('/upload-pdf', methods=['GET', 'POST'])
+def upload_pdf():
+
+    if request.method == 'POST':
+
+        pdf_file = request.files['pdf']
+
+        if not pdf_file:
+            return "No file uploaded"
+
+        upload_folder = "uploads"
+
+        os.makedirs(upload_folder, exist_ok=True)
+
+        pdf_path = os.path.join(
+            upload_folder,
+            pdf_file.filename
+        )
+
+        pdf_file.save(pdf_path)
+
+        extracted_products = []
+
+        with pdfplumber.open(pdf_path) as pdf:
+
+            full_text = ""
+
+            for page in pdf.pages:
+
+                text = page.extract_text()
+
+                if text:
+                    full_text += text + "\n"
+
+        lines = full_text.splitlines()
+
+        for line in lines:
+
+            print(line)
+
+            if "RON" in line and "H87" in line:
+
+                try:
+
+                    parts = line.split()
+
+                    print(parts)
+
+                    # [
+                    # '1',
+                    # '172812F',
+                    # 'COMUTATOR',
+                    # 'PORNIRE',
+                    # 'FEBI',
+                    # '251.96',
+                    # 'RON',
+                    # '-1',
+                    # '-1',
+                    # 'H87',
+                    # '19',
+                    # '-251.96'
+                    # ]
+
+                    cod_produs = parts[1]
+
+                    pret_unitar = parts[-7]
+
+                    moneda = parts[-6]
+
+                    cantitate = parts[-5]
+
+                    denumire = " ".join(parts[2:-7])
+
+                    extracted_products.append({
+                        "Cod produs": cod_produs,
+                        "Denumire produs": denumire,
+                        "Pret unitar": pret_unitar,
+                        "Moneda": moneda,
+                        "Cantitate": cantitate
+                    })
+
+                except Exception as e:
+                    print("Parsing error:", e)
+
+        if not extracted_products:
+            return "No products found"
+
+        df = pd.DataFrame(extracted_products)
+
+        csv_filename = os.path.splitext(pdf_file.filename)[0] + ".csv"
+
+        csv_path = os.path.join(
+            upload_folder,
+            csv_filename
+        )
+
+        df.to_csv(csv_path, index=False)
+
+        return send_file(
+            csv_path,
+            as_attachment=True
+        )
+
+    return render_template("upload_pdf.html")
 
 if __name__ == '__main__':
     app.run(debug=True)

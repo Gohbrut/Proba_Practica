@@ -3,3 +3,5 @@ flask_sqlalchemy
 selenium
 webdriver-manager
 apscheduler
+pdfplumber
+pandas
